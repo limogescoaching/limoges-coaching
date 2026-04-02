@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Limoges Coaching — Suivi Clients</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0f1117;
+  --surface: #181b24;
+  --card: #1e2130;
+  --card2: #252a3a;
+  --accent: #4f8cff;
+  --green: #22c97a;
+  --orange: #ffaa00;
+  --red: #ff4560;
+  --text: #f0f2f8;
+  --muted: #6b7399;
+  --border: #2a2f45;
+  --radius: 16px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 90px;
+}
+
+/* ── HEADER ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,0.95);
+  backdrop-filter: blur(12px);
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-left h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.topbar-left span { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+.btn-add {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--accent); border: none; color: #fff;
+  font-size: 22px; font-weight: 300; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(79,140,255,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-add:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(79,140,255,0.2); }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex; gap: 10px; padding: 16px 20px 0;
+}
+.stat-pill {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 10px; text-align: center;
+}
+.stat-pill .num { font-size: 24px; font-weight: 800; line-height: 1; }
+.stat-pill .lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+.num-total { color: var(--accent); }
+.num-alert { color: var(--red); }
+.num-ok    { color: var(--green); }
+
+/* ── FILTERS ── */
+.filters {
+  display: flex; gap: 8px; padding: 14px 20px 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display:none; }
+.filt {
+  flex-shrink: 0; border: 1.5px solid var(--border);
+  background: transparent; border-radius: 100px;
+  padding: 6px 16px; font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.filt.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── CLIENT LIST ── */
+.client-list { padding: 14px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+
+.client-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  cursor: pointer; transition: transform 0.15s;
+  animation: fadeUp 0.3s ease both;
+}
+.client-card:active { transform: scale(0.98); }
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.client-card.alert-card { border-color: rgba(255,69,96,0.4); }
+.client-card.done-card  { opacity: 0.55; }
+
+.card-top {
+  padding: 16px 16px 12px;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.avatar {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700; flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+.card-info { flex: 1; }
+.card-name { font-size: 16px; font-weight: 700; line-height: 1.1; }
+.card-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.badge-status {
+  font-size: 10px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 100px;
+  flex-shrink: 0;
+}
+.badge-alert  { background: rgba(255,69,96,0.15); color: var(--red); }
+.badge-ok     { background: rgba(34,201,122,0.15); color: var(--green); }
+.badge-done   { background: rgba(107,115,153,0.15); color: var(--muted); }
+.badge-warn   { background: rgba(255,170,0,0.15); color: var(--orange); }
+
+/* PROGRESS BAR */
+.progress-wrap { padding: 0 16px 14px; }
+.progress-info {
+  display: flex; justify-content: space-between;
+  font-size: 12px; margin-bottom: 6px;
+}
+.progress-info .done-count { font-weight: 700; color: var(--text); }
+.progress-info .total-count { color: var(--muted); }
+.progress-bg {
+  height: 6px; background: var(--card2); border-radius: 100px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.card-footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; gap: 8px;
+}
+.btn-sm {
+  flex: 1; padding: 8px 6px; border-radius: 10px;
+  border: none; font-family: 'Outfit', sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-sm:active { transform: scale(0.96); }
+.btn-seance { background: var(--accent); color: #fff; }
+.btn-report { background: var(--card2); color: var(--orange); }
+.btn-detail { background: var(--card2); color: var(--muted); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center; padding: 60px 30px;
+  color: var(--muted);
+}
+.empty .emoji { font-size: 52px; margin-bottom: 16px; }
+.empty p { font-size: 15px; line-height: 1.6; }
+.empty strong { color: var(--text); }
+
+/* ── MODAL ── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,12,18,0.85); backdrop-filter: blur(6px);
+  z-index: 200; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+.overlay.open { display: flex; }
+
+.sheet {
+  background: var(--surface); width: 100%; max-width: 480px;
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  max-height: 92vh; overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 100px; margin: 12px auto 0;
+}
+.sheet-head {
+  padding: 16px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sheet-title { font-size: 20px; font-weight: 800; }
+.btn-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--card2); border: none; color: var(--muted);
+  font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+
+.sheet-body { padding: 20px; }
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  display: block;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 16px; color: var(--text);
+  font-family: 'Outfit', sans-serif; font-size: 15px;
+  transition: border-color 0.15s;
+  -webkit-appearance: none; appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+
+.form-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.form-hint strong { color: var(--orange); }
+
+.calc-preview {
+  background: var(--card2); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 16px;
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.calc-item { flex: 1; min-width: 80px; }
+.calc-item .val { font-size: 18px; font-weight: 800; color: var(--accent); }
+.calc-item .lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+.btn-primary {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: var(--accent); border: none; color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  box-shadow: 0 4px 20px rgba(79,140,255,0.3);
+}
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-danger {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: rgba(255,69,96,0.12); border: 1.5px solid rgba(255,69,96,0.3);
+  color: var(--red); font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;
+  transition: background 0.15s;
+}
+.btn-danger:active { background: rgba(255,69,96,0.22); }
+.btn-cancel {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: transparent; border: 1.5px solid var(--border);
+  color: var(--muted); font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  margin-top: 10px; transition: background 0.15s, color 0.15s;
+}
+.btn-cancel:active { background: var(--card2); color: var(--text); }
+
+/* DETAIL SHEET */
+.detail-avatar {
+  width: 64px; height: 64px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 800; margin-bottom: 12px;
+}
+.detail-name { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+.detail-phone { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.info-tile {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 12px;
+}
+.info-tile .val { font-size: 20px; font-weight: 800; line-height: 1; }
+.info-tile .lbl { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+.sessions-timeline {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 16px;
+}
+.sessions-timeline h3 {
+  font-size: 13px; color: var(--muted); letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.session-dots {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.dot {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.dot-done    { background: var(--green); color: #fff; }
+.dot-report  { background: var(--orange); color: #fff; }
+.dot-pending { background: var(--card2); color: var(--muted); border: 1px solid var(--border); }
+.dot-current { background: var(--accent); color: #fff; box-shadow: 0 0 0 3px rgba(79,140,255,0.3); }
+
+.notes-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 16px;
+}
+.notes-box h3 {
+  font-size: 13px; color: var(--muted); letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.notes-box p { font-size: 14px; line-height: 1.6; color: var(--text); }
+.notes-box p.empty-note { color: var(--muted); font-style: italic; }
+
+.action-btns { display: flex; flex-direction: column; gap: 10px; }
+.btn-green {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: var(--green); border: none; color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s;
+  box-shadow: 0 4px 20px rgba(34,201,122,0.25);
+}
+.btn-orange {
+  width: 100%; padding: 16px; border-radius: 14px;
+  background: rgba(255,170,0,0.12); border: 1.5px solid rgba(255,170,0,0.3);
+  color: var(--orange); font-family: 'Outfit', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.btn-edit {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: var(--card2); border: 1.5px solid var(--border);
+  color: var(--muted); font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+
+.separator { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* DATE PICKER SHEET */
+.datepick-info {
+  background: var(--card2); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.datepick-info .dp-avatar {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; flex-shrink: 0;
+}
+.datepick-info .dp-name { font-size: 15px; font-weight: 700; }
+.datepick-info .dp-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.dp-type-toggle {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.dp-type-btn {
+  flex: 1; padding: 12px 8px; border-radius: 12px;
+  border: 2px solid var(--border); background: transparent;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.dp-type-btn.active-green { border-color: var(--green); background: rgba(34,201,122,0.1); color: var(--green); }
+.dp-type-btn.active-orange { border-color: var(--orange); background: rgba(255,170,0,0.1); color: var(--orange); }
+
+.dp-date-wrap { margin-bottom: 20px; }
+.dp-date-wrap .form-label { margin-bottom: 8px; }
+.dp-shortcuts {
+  display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.dp-shortcut {
+  border: 1.5px solid var(--border); background: var(--card2);
+  border-radius: 8px; padding: 6px 14px;
+  font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.dp-shortcut.sel { border-color: var(--accent); background: rgba(79,140,255,0.12); color: var(--accent); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 12px 24px;
+  font-size: 14px; font-weight: 600; color: var(--text);
+  opacity: 0; pointer-events: none; z-index: 999;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* BOTTOM NAV placeholder */
+.bottom-safe { height: 20px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>💪 Limoges Coaching</h1>
+    <span>Suivi clients</span>
+  </div>
+  <button class="btn-add" onclick="openAddSheet()">+</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <button class="filt active" onclick="setFilter('all',this)">Tous</button>
+  <button class="filt" onclick="setFilter('alert',this)">🔴 Alerte</button>
+  <button class="filt" onclick="setFilter('active',this)">🟢 Actifs</button>
+  <button class="filt" onclick="setFilter('done',this)">✅ Terminés</button>
+</div>
+
+<!-- CLIENT LIST -->
+<div class="client-list" id="clientList"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET : AJOUTER / ÉDITER CLIENT
+═══════════════════════════════════════════ -->
+<div class="overlay" id="addOverlay" onclick="closeOnBg(event,'addOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="addTitle">Nouveau client</div>
+      <button class="btn-close" onclick="closeSheet('addOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label">Nom complet</label>
+        <input class="form-input" id="f-nom" placeholder="Ex : Marie Dupont" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Téléphone</label>
+        <input class="form-input" id="f-tel" placeholder="06 xx xx xx xx" type="tel" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date de début</label>
+          <input class="form-input" id="f-debut" type="date" oninput="updateCalc()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Séances / semaine</label>
+          <select class="form-select" id="f-rythme" oninput="updateCalc()">
+            <option value="1">1 / semaine</option>
+            <option value="2" selected>2 / semaine</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre total de séances</label>
+        <input class="form-input" id="f-total" type="number" min="1" max="200" placeholder="Ex : 24" oninput="updateCalc()" />
+        <div class="form-hint">Défini à la signature. L'app calculera la date de fin.</div>
+      </div>
+
+      <!-- PREVIEW CALCUL -->
+      <div class="calc-preview" id="calcPreview" style="display:none">
+        <div class="calc-item">
+          <div class="val" id="prev-semaines">—</div>
+          <div class="lbl">Semaines</div>
+        </div>
+        <div class="calc-item">
+          <div class="val" id="prev-fin">—</div>
+          <div class="lbl">Date de fin</div>
+        </div>
+        <div class="calc-item">
+          <div class="val" id="prev-duree">—</div>
+          <div class="lbl">Durée</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes libres</label>
+        <textarea class="form-textarea" id="f-notes" placeholder="Objectifs, infos importantes..."></textarea>
+      </div>
+
+      <button class="btn-primary" id="addBtn" onclick="saveClient()">Créer le contrat</button>
+      <button class="btn-cancel" onclick="closeSheet('addOverlay')">Annuler</button>
+      <button class="btn-danger" id="deleteBtn" style="display:none" onclick="deleteClient()">Supprimer ce client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET : DÉTAIL CLIENT
+═══════════════════════════════════════════ -->
+<div class="overlay" id="detailOverlay" onclick="closeOnBg(event,'detailOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">Fiche client</div>
+      <button class="btn-close" onclick="closeSheet('detailOverlay')">✕</button>
+    </div>
+    <div class="sheet-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET : ENREGISTRER SÉANCE (avec date)
+═══════════════════════════════════════════ -->
+<div class="overlay" id="datePickOverlay" onclick="closeOnBg(event,'datePickOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="dpTitle">Enregistrer</div>
+      <button class="btn-close" onclick="closeSheet('datePickOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="datepick-info" id="dpInfo"></div>
+
+      <div class="dp-type-toggle">
+        <button class="dp-type-btn active-green" id="dpBtnDone" onclick="setDpType('done')">✅ Séance faite</button>
+        <button class="dp-type-btn" id="dpBtnReport" onclick="setDpType('report')">↩️ Reporter</button>
+      </div>
+
+      <!-- Section date pour séance faite -->
+      <div id="dpDateWrap" style="margin-bottom:16px">
+        <label class="form-label">Date de la séance</label>
+        <div class="dp-shortcuts">
+          <button class="dp-shortcut sel" id="sc-today" onclick="setShortcut('today')">Aujourd'hui</button>
+          <button class="dp-shortcut" id="sc-hier" onclick="setShortcut('hier')">Hier</button>
+          <button class="dp-shortcut" id="sc-autre" onclick="setShortcut('autre')">Autre date</button>
+        </div>
+        <input class="form-input" id="dpDate" type="date" style="display:none;margin-top:8px" oninput="onDpDateInput()" />
+      </div>
+
+      <!-- Section report : choix date connue ou pas -->
+      <div id="dpReportWrap" style="display:none;margin-bottom:16px">
+        <label class="form-label">Date du rattrapage ?</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="dp-type-btn active-orange" id="rpBtnPending" onclick="setReportMode('pending')" style="flex:1;font-size:12px">🕐 Pas de date pour l'instant</button>
+          <button class="dp-type-btn" id="rpBtnDate" onclick="setReportMode('date')" style="flex:1;font-size:12px">📅 Je connais la date</button>
+        </div>
+        <div id="rpDateSection" style="display:none">
+          <div class="dp-shortcuts">
+            <button class="dp-shortcut sel" id="rp-sc-today" onclick="setRpShortcut('today')">Aujourd'hui</button>
+            <button class="dp-shortcut" id="rp-sc-hier" onclick="setRpShortcut('hier')">Hier</button>
+            <button class="dp-shortcut" id="rp-sc-autre" onclick="setRpShortcut('autre')">Autre date</button>
+          </div>
+          <input class="form-input" id="rpDate" type="date" style="display:none;margin-top:8px" oninput="onRpDateInput()" />
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label class="form-label">Note (optionnel)</label>
+        <input class="form-input" id="dpNoteInput" placeholder="Ex : cardio, retard, rattrapée du 12 mars..." />
+      </div>
+
+      <button class="btn-primary" id="dpConfirm" onclick="confirmDatePick()">Confirmer</button>
+      <button class="btn-cancel" onclick="closeSheet('datePickOverlay')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET : MODIFIER / SUPPRIMER UNE SÉANCE
+═══════════════════════════════════════════ -->
+<div class="overlay" id="editSessionOverlay" onclick="closeOnBg(event,'editSessionOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">Modifier la séance</div>
+      <button class="btn-close" onclick="closeSheet('editSessionOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="datepick-info" id="esInfo"></div>
+
+      <div class="dp-type-toggle">
+        <button class="dp-type-btn active-green" id="esBtnDone" onclick="setEsType('done')">✅ Séance faite</button>
+        <button class="dp-type-btn" id="esBtnReport" onclick="setEsType('report')">↩️ Reportée</button>
+      </div>
+
+      <div class="dp-date-wrap">
+        <label class="form-label">Date de la séance</label>
+        <input class="form-input" id="esDate" type="date" />
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label class="form-label">Note (optionnel)</label>
+        <input class="form-input" id="esNote" placeholder="Ex : cardio, rattrapée du 12 mars..." />
+      </div>
+
+      <button class="btn-primary" id="esConfirm" onclick="confirmEditSession()" style="background:var(--accent)">💾 Enregistrer les modifications</button>
+      <button class="btn-cancel" onclick="closeSheet('editSessionOverlay')" style="margin-top:10px">Annuler</button>
+      <div style="height:1px;background:var(--border);margin:16px 0"></div>
+      <button class="btn-danger" onclick="confirmDeleteSession()">🗑️ Supprimer cette séance</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET : PROGRAMMER UN RATTRAPAGE
+═══════════════════════════════════════════ -->
+<div class="overlay" id="rattrapageOverlay" onclick="closeOnBg(event,'rattrapageOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">Programmer le rattrapage</div>
+      <button class="btn-close" onclick="closeSheet('rattrapageOverlay')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="datepick-info" id="rtInfo"></div>
+      <div style="background:rgba(34,201,122,0.08);border:1px solid rgba(34,201,122,0.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--green);line-height:1.5">
+        ✅ Cette séance reportée va être marquée comme <strong>rattrapée</strong> et comptera dans les séances faites.
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="form-label">Date du rattrapage</label>
+        <div class="dp-shortcuts">
+          <button class="dp-shortcut sel" id="rt-sc-today" onclick="setRtShortcut('today')">Aujourd'hui</button>
+          <button class="dp-shortcut" id="rt-sc-hier" onclick="setRtShortcut('hier')">Hier</button>
+          <button class="dp-shortcut" id="rt-sc-autre" onclick="setRtShortcut('autre')">Autre date</button>
+        </div>
+        <input class="form-input" id="rtDate" type="date" style="display:none;margin-top:8px" />
+      </div>
+      <div style="margin-bottom:20px">
+        <label class="form-label">Note (optionnel)</label>
+        <input class="form-input" id="rtNote" placeholder="Ex : rattrapée le mardi matin..." />
+      </div>
+      <button class="btn-green" onclick="confirmRattrapage()">✅ Confirmer le rattrapage</button>
+      <button class="btn-cancel" onclick="closeSheet('rattrapageOverlay')" style="margin-top:10px">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-safe"></div>
+
+<script>
+// ═══════════════════════ STORAGE ═══════════════════════
+const STORE_KEY = 'lc_clients_v2';
+let clients = [];
+let editingId = null;
+let currentFilter = 'all';
+
+function load() {
+  try { clients = JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch(e) { clients = []; }
+}
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(clients));
+}
+
+// ═══════════════════════ HELPERS ═══════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+}
+function formatDateShort(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+}
+
+// Calcule la date de fin en fonction du début, total séances et rythme (séances/sem)
+// Tient compte de la semaine réelle (lundi de début = sem 1)
+function computeEndDate(startStr, totalSeances, rythme) {
+  if (!startStr || !totalSeances || !rythme) return null;
+  const start = new Date(startStr + 'T12:00:00');
+  // Nombre de semaines complètes nécessaires (ceil si pas exact)
+  const seancesParSem = parseInt(rythme);
+  // Semaines nécessaires = ceil(total / rythme)
+  const semaines = Math.ceil(totalSeances / seancesParSem);
+  // Date de fin = début + semaines semaines - 1 jour (fin de la dernière semaine)
+  const end = new Date(start);
+  end.setDate(end.getDate() + semaines * 7 - 1);
+  return end.toISOString().slice(0,10);
+}
+
+function nbSemaines(totalSeances, rythme) {
+  return Math.ceil(totalSeances / parseInt(rythme));
+}
+
+function dureeLabel(totalSeances, rythme) {
+  const sem = nbSemaines(totalSeances, rythme);
+  const mois = sem / 4.33;
+  if (mois < 2) return sem + ' sem.';
+  return Math.round(mois * 10) / 10 + ' mois';
+}
+
+// Nb de séances reportées (annulées) = rallongent la date de fin
+function getEndDateWithReports(client) {
+  // Tous les reports (en attente ou rattrapés) allongent la fin
+  const reports = (client.sessions || []).filter(s => s.type === 'report-pending' || s.type === 'report').length;
+  const base = computeEndDate(client.debut, client.total, client.rythme);
+  if (!base) return null;
+  const d = new Date(base + 'T12:00:00');
+  const joursParSeance = 7 / parseInt(client.rythme);
+  d.setDate(d.getDate() + Math.round(reports * joursParSeance));
+  return d.toISOString().slice(0,10);
+}
+
+function getDoneCount(client) {
+  // Séances faites + séances rattrapées comptent comme "done"
+  return (client.sessions || []).filter(s => s.type === 'done' || s.type === 'rattrapage').length;
+}
+function getReportCount(client) {
+  return (client.sessions || []).filter(s => s.type === 'report-pending' || s.type === 'report').length;
+}
+function getPendingCount(client) {
+  // Séances reportées sans date = à rattraper
+  return (client.sessions || []).filter(s => s.type === 'report-pending').length;
+}
+function getEffectiveDone(client) {
+  return getDoneCount(client);
+}
+function getRemaining(client) {
+  return client.total - getDoneCount(client);
+}
+
+function getStatus(client) {
+  const rem = getRemaining(client);
+  if (rem <= 0) return 'done';
+  if (rem <= 2) return 'alert';
+  if (rem <= 4) return 'warn';
+  return 'ok';
+}
+
+const AVATAR_COLORS = [
+  '#4f8cff','#22c97a','#ffaa00','#ff4560','#a855f7','#06b6d4','#f97316','#ec4899'
+];
+function avatarColor(name) {
+  let h = 0;
+  for (let i=0; i<name.length; i++) h = (h*31 + name.charCodeAt(i)) & 0xffff;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function initials(name) {
+  return name.trim().split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+
+// ═══════════════════════ RENDER ═══════════════════════
+function render() {
+  renderStats();
+  renderList();
+}
+
+function renderStats() {
+  const total = clients.length;
+  const alerts = clients.filter(c => getStatus(c) === 'alert' || getStatus(c) === 'done').length;
+  const actifs = clients.filter(c => getStatus(c) === 'ok' || getStatus(c) === 'warn').length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-pill"><div class="num num-total">${total}</div><div class="lbl">Clients</div></div>
+    <div class="stat-pill"><div class="num num-alert">${clients.filter(c=>getStatus(c)==='alert').length}</div><div class="lbl">Alertes</div></div>
+    <div class="stat-pill"><div class="num num-ok">${actifs}</div><div class="lbl">Actifs</div></div>
+  `;
+}
+
+function renderList() {
+  const el = document.getElementById('clientList');
+  let list = [...clients];
+
+  // Filter
+  if (currentFilter === 'alert') list = list.filter(c => getStatus(c) === 'alert');
+  else if (currentFilter === 'active') list = list.filter(c => ['ok','warn'].includes(getStatus(c)));
+  else if (currentFilter === 'done') list = list.filter(c => getStatus(c) === 'done');
+
+  // Sort: alerts first
+  list.sort((a,b) => {
+    const order = {alert:0, warn:1, ok:2, done:3};
+    return order[getStatus(a)] - order[getStatus(b)];
+  });
+
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty">
+      <div class="emoji">${currentFilter==='all' ? '👋' : '🔍'}</div>
+      <p>${currentFilter==='all'
+        ? '<strong>Aucun client pour l\'instant.</strong><br>Appuie sur <strong>+</strong> pour créer ton premier contrat.'
+        : 'Aucun client dans cette catégorie.'}</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(c => clientCardHTML(c)).join('');
+}
+
+function clientCardHTML(c) {
+  const done = getDoneCount(c);
+  const rem = getRemaining(c);
+  const status = getStatus(c);
+  const pct = Math.min(100, Math.round((done / c.total) * 100));
+  const endDate = getEndDateWithReports(c);
+  const color = avatarColor(c.nom);
+
+  const progressColor = status === 'done' ? 'var(--muted)' :
+                        status === 'alert' ? 'var(--red)' :
+                        status === 'warn'  ? 'var(--orange)' : 'var(--green)';
+
+  const badgeHTML = status === 'alert' ? '<span class="badge-status badge-alert">⚠️ Fin proche</span>'
+                  : status === 'done'  ? '<span class="badge-status badge-done">Terminé</span>'
+                  : status === 'warn'  ? '<span class="badge-status badge-warn">Bientôt</span>'
+                  : '<span class="badge-status badge-ok">Actif</span>';
+
+  const cardClass = status === 'alert' ? 'client-card alert-card' :
+                    status === 'done'  ? 'client-card done-card' : 'client-card';
+
+  const reports = getReportCount(c);
+  const pending = getPendingCount(c);
+
+  return `<div class="${cardClass}" onclick="openDetail('${c.id}')">
+    <div class="card-top">
+      <div class="avatar" style="background:${color}22;color:${color}">${initials(c.nom)}</div>
+      <div class="card-info">
+        <div class="card-name">${c.nom}</div>
+        <div class="card-meta">
+          Fin : ${formatDate(endDate)}${pending > 0 ? ` · <span style="color:var(--red);font-weight:700">🕐 ${pending} à rattraper</span>` : reports > 0 ? ` · ${reports} report${reports>1?'s':''}` : ''}
+        </div>
+      </div>
+      ${badgeHTML}
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="done-count">${done} séances faites</span>
+        <span class="total-count">encore <strong style="color:${progressColor}">${rem > 0 ? rem : 0}</strong> restante${rem>1?'s':''}</span>
+      </div>
+      <div class="progress-bg">
+        <div class="progress-fill" style="width:${pct}%;background:${progressColor}"></div>
+      </div>
+    </div>
+    ${status !== 'done' ? `
+    <div class="card-footer" onclick="event.stopPropagation()">
+      <button class="btn-sm btn-seance" onclick="quickDone('${c.id}')">✅ Séance faite</button>
+      <button class="btn-sm btn-report" onclick="quickReport('${c.id}')">↩️ Reporter</button>
+      <button class="btn-sm btn-detail" onclick="openDetail('${c.id}')">📋 Fiche</button>
+    </div>` : ''}
+  </div>`;
+}
+
+// ═══════════════════════ ACTIONS RAPIDES ═══════════════════════
+// ═══════════════════════ DATE PICKER ═══════════════════════
+let dpClientId = null;
+let dpType = 'done';
+let dpShortcut = 'today';
+let dpReportMode = 'pending'; // 'pending' or 'date'
+let rpShortcut = 'today';
+
+function openDatePick(id, type) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  if (type === 'done' && getRemaining(c) <= 0) { showToast('✅ Contrat déjà terminé !'); return; }
+  dpClientId = id;
+  dpType = type;
+  dpShortcut = 'today';
+  dpReportMode = 'pending';
+  rpShortcut = 'today';
+
+  const color = avatarColor(c.nom);
+  const done = getDoneCount(c);
+  const rem = getRemaining(c);
+  const pending = getPendingCount(c);
+  document.getElementById('dpInfo').innerHTML = `
+    <div class="dp-avatar" style="background:${color}22;color:${color}">${initials(c.nom)}</div>
+    <div>
+      <div class="dp-name">${c.nom}</div>
+      <div class="dp-sub">${done} faites · ${rem} restantes${pending>0?' · <span style="color:var(--red)">'+pending+' à rattraper</span>':''}</div>
+    </div>`;
+
+  setDpType(type);
+
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('dpDate').value = today;
+  document.getElementById('dpDate').style.display = 'none';
+  document.getElementById('sc-today').classList.add('sel');
+  document.getElementById('sc-hier').classList.remove('sel');
+  document.getElementById('sc-autre').classList.remove('sel');
+  document.getElementById('dpNoteInput').value = '';
+  document.getElementById('datePickOverlay').classList.add('open');
+}
+
+function setDpType(type) {
+  dpType = type;
+  document.getElementById('dpBtnDone').className   = 'dp-type-btn' + (type==='done'   ? ' active-green'  : '');
+  document.getElementById('dpBtnReport').className = 'dp-type-btn' + (type==='report' ? ' active-orange' : '');
+
+  // Afficher la bonne section date
+  document.getElementById('dpDateWrap').style.display   = type === 'done'   ? 'block' : 'none';
+  document.getElementById('dpReportWrap').style.display = type === 'report' ? 'block' : 'none';
+
+  if (type === 'report') {
+    setReportMode('pending');
+    document.getElementById('dpConfirm').textContent = '↩️ Confirmer le report';
+    document.getElementById('dpConfirm').style.background = 'var(--orange)';
+  } else {
+    document.getElementById('dpConfirm').textContent = '✅ Confirmer la séance';
+    document.getElementById('dpConfirm').style.background = 'var(--green)';
+  }
+}
+
+function setReportMode(mode) {
+  dpReportMode = mode;
+  document.getElementById('rpBtnPending').className = 'dp-type-btn' + (mode==='pending' ? ' active-orange' : '');
+  document.getElementById('rpBtnDate').className    = 'dp-type-btn' + (mode==='date'    ? ' active-green'  : '');
+  document.getElementById('rpDateSection').style.display = mode === 'date' ? 'block' : 'none';
+}
+
+function setShortcut(sc) {
+  dpShortcut = sc;
+  ['today','hier','autre'].forEach(s => document.getElementById('sc-'+s).classList.toggle('sel', s===sc));
+  document.getElementById('dpDate').style.display = sc === 'autre' ? 'block' : 'none';
+  if (sc === 'autre') setTimeout(()=>document.getElementById('dpDate').focus(), 100);
+}
+
+function onDpDateInput() {
+  dpShortcut = 'autre';
+  ['today','hier','autre'].forEach(s => document.getElementById('sc-'+s).classList.toggle('sel', s==='autre'));
+}
+
+function setRpShortcut(sc) {
+  rpShortcut = sc;
+  ['today','hier','autre'].forEach(s => document.getElementById('rp-sc-'+s).classList.toggle('sel', s===sc));
+  document.getElementById('rpDate').style.display = sc === 'autre' ? 'block' : 'none';
+  if (sc === 'autre') setTimeout(()=>document.getElementById('rpDate').focus(), 100);
+}
+
+function onRpDateInput() {
+  rpShortcut = 'autre';
+  ['today','hier','autre'].forEach(s => document.getElementById('rp-sc-'+s).classList.toggle('sel', s==='autre'));
+}
+
+function getPickedDate() {
+  if (dpShortcut === 'today') return new Date().toISOString().slice(0,10);
+  if (dpShortcut === 'hier') { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+  return document.getElementById('dpDate').value || new Date().toISOString().slice(0,10);
+}
+
+function getRpDate() {
+  if (rpShortcut === 'today') return new Date().toISOString().slice(0,10);
+  if (rpShortcut === 'hier') { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+  return document.getElementById('rpDate').value || '';
+}
+
+function confirmDatePick() {
+  const c = clients.find(x=>x.id===dpClientId);
+  if (!c) return;
+  const note = document.getElementById('dpNoteInput').value.trim();
+  c.sessions = c.sessions || [];
+
+  if (dpType === 'done') {
+    const date = getPickedDate();
+    c.sessions.push({ type:'done', date, note });
+    save(); render();
+    closeSheet('datePickOverlay');
+    const rem = getRemaining(c);
+    if (rem === 0) showToast('🎉 Contrat terminé pour ' + c.nom + ' !');
+    else if (rem <= 2) showToast('⚠️ Plus que ' + rem + ' séance' + (rem>1?'s':'') + ' pour ' + c.nom);
+    else showToast('✅ Séance du ' + formatDate(date) + ' enregistrée');
+  } else {
+    // Report
+    if (dpReportMode === 'pending') {
+      c.sessions.push({ type:'report-pending', date: new Date().toISOString().slice(0,10), note });
+      save(); render();
+      closeSheet('datePickOverlay');
+      showToast('🕐 Report enregistré — séance à rattraper');
+    } else {
+      const date = getRpDate();
+      if (!date) { showToast('⚠️ Merci de choisir une date'); return; }
+      c.sessions.push({ type:'report-pending', date: new Date().toISOString().slice(0,10), note, rattrapageDate: date });
+      save(); render();
+      closeSheet('datePickOverlay');
+      const joursAllonges = Math.round(7 / parseInt(c.rythme));
+      showToast('↩️ Report enregistré — rattrapage prévu le ' + formatDate(date));
+    }
+  }
+}
+
+function quickDone(id) { openDatePick(id, 'done'); }
+function quickReport(id) { openDatePick(id, 'report'); }
+
+// ═══════════════════════ RATTRAPAGE ═══════════════════════
+let rtClientId = null;
+let rtSessionIdx = null;
+let rtShortcut = 'today';
+
+function openRattrapage(clientId, idx) {
+  const c = clients.find(x=>x.id===clientId);
+  if (!c) return;
+  rtClientId = clientId;
+  rtSessionIdx = idx;
+  rtShortcut = 'today';
+
+  const color = avatarColor(c.nom);
+  const s = c.sessions[idx];
+  document.getElementById('rtInfo').innerHTML = `
+    <div class="dp-avatar" style="background:${color}22;color:${color}">${initials(c.nom)}</div>
+    <div>
+      <div class="dp-name">${c.nom}</div>
+      <div class="dp-sub">Reportée le ${formatDate(s.date)}${s.note?' · '+s.note:''}</div>
+    </div>`;
+
+  const today = new Date().toISOString().slice(0,10);
+  // Pre-fill with rattrapageDate if set
+  if (s.rattrapageDate) {
+    document.getElementById('rtDate').value = s.rattrapageDate;
+    document.getElementById('rtDate').style.display = 'block';
+    document.getElementById('rt-sc-today').classList.remove('sel');
+    document.getElementById('rt-sc-hier').classList.remove('sel');
+    document.getElementById('rt-sc-autre').classList.add('sel');
+    rtShortcut = 'autre';
+  } else {
+    document.getElementById('rtDate').value = today;
+    document.getElementById('rtDate').style.display = 'none';
+    document.getElementById('rt-sc-today').classList.add('sel');
+    document.getElementById('rt-sc-hier').classList.remove('sel');
+    document.getElementById('rt-sc-autre').classList.remove('sel');
+    rtShortcut = 'today';
+  }
+  document.getElementById('rtNote').value = '';
+  document.getElementById('rattrapageOverlay').classList.add('open');
+}
+
+function setRtShortcut(sc) {
+  rtShortcut = sc;
+  ['today','hier','autre'].forEach(s => document.getElementById('rt-sc-'+s).classList.toggle('sel', s===sc));
+  document.getElementById('rtDate').style.display = sc === 'autre' ? 'block' : 'none';
+  if (sc === 'autre') setTimeout(()=>document.getElementById('rtDate').focus(), 100);
+}
+
+function getRtDate() {
+  if (rtShortcut === 'today') return new Date().toISOString().slice(0,10);
+  if (rtShortcut === 'hier') { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+  return document.getElementById('rtDate').value || new Date().toISOString().slice(0,10);
+}
+
+function confirmRattrapage() {
+  const c = clients.find(x=>x.id===rtClientId);
+  if (!c) return;
+  const date = getRtDate();
+  const note = document.getElementById('rtNote').value.trim();
+  // Transformer la session report-pending en rattrapage (comptera comme done)
+  c.sessions[rtSessionIdx] = { type:'rattrapage', date, note, reportOriginal: c.sessions[rtSessionIdx].date };
+  save(); render();
+  closeSheet('rattrapageOverlay');
+  showToast('✅ Rattrapage du ' + formatDate(date) + ' enregistré !');
+  setTimeout(() => openDetail(rtClientId), 200);
+}
+
+// ═══════════════════════ EDIT / DELETE SESSION ═══════════════════════
+let esClientId = null;
+let esSessionIdx = null;
+let esType = 'done';
+
+function openEditSession(clientId, idx) {
+  const c = clients.find(x => x.id === clientId);
+  if (!c) return;
+  const s = c.sessions[idx];
+  if (!s) return;
+  esClientId = clientId;
+  esSessionIdx = idx;
+  esType = s.type;
+
+  // Info client
+  const color = avatarColor(c.nom);
+  document.getElementById('esInfo').innerHTML = `
+    <div class="dp-avatar" style="background:${color}22;color:${color}">${initials(c.nom)}</div>
+    <div>
+      <div class="dp-name">${c.nom}</div>
+      <div class="dp-sub">Séance n°${idx + 1}</div>
+    </div>`;
+
+  setEsType(s.type);
+  document.getElementById('esDate').value = s.date || '';
+  document.getElementById('esNote').value = s.note || '';
+  document.getElementById('editSessionOverlay').classList.add('open');
+}
+
+function setEsType(type) {
+  esType = type;
+  const btnDone   = document.getElementById('esBtnDone');
+  const btnReport = document.getElementById('esBtnReport');
+  btnDone.className   = 'dp-type-btn' + (type === 'done'   ? ' active-green'  : '');
+  btnReport.className = 'dp-type-btn' + (type === 'report' ? ' active-orange' : '');
+  document.getElementById('esConfirm').style.background = type === 'done' ? 'var(--green)' : 'var(--orange)';
+}
+
+function confirmEditSession() {
+  const c = clients.find(x => x.id === esClientId);
+  if (!c) return;
+  const date = document.getElementById('esDate').value;
+  const note = document.getElementById('esNote').value.trim();
+  if (!date) { showToast('⚠️ Merci de choisir une date'); return; }
+  c.sessions[esSessionIdx] = { type: esType, date, note };
+  save(); render();
+  closeSheet('editSessionOverlay');
+  showToast('✅ Séance modifiée');
+  // Rouvrir le détail mis à jour
+  setTimeout(() => openDetail(esClientId), 200);
+}
+
+function deleteSessionDirect(clientId, idx) {
+  esClientId = clientId;
+  esSessionIdx = idx;
+  confirmDeleteSession();
+}
+
+function confirmDeleteSession() {
+  const c = clients.find(x => x.id === esClientId);
+  if (!c) return;
+  const s = c.sessions[esSessionIdx];
+  const label = s.type === 'done' ? 'cette séance faite' : s.type === 'rattrapage' ? 'ce rattrapage' : 'ce report';
+  const dateStr = s.date ? ' du ' + formatDate(s.date) : '';
+  if (!confirm('Supprimer ' + label + dateStr + ' ?')) return;
+  c.sessions.splice(esSessionIdx, 1);
+  save(); render();
+  closeSheet('editSessionOverlay');
+  showToast('🗑️ Séance supprimée');
+  setTimeout(() => openDetail(esClientId), 200);
+}
+
+// ═══════════════════════ HISTORIQUE ═══════════════════════
+function buildHistorique(sessions, clientId) {
+  if (!sessions.length) return '';
+  const rows = [...sessions].map((s, idx) => {
+    const num = idx + 1;
+    let icon, label, col, extra = '';
+
+    if (s.type === 'done') {
+      icon = '✅'; label = 'Faite'; col = 'var(--green)';
+    } else if (s.type === 'rattrapage') {
+      icon = '🔄'; label = 'Rattrapée'; col = 'var(--green)';
+      extra = `<div style="font-size:11px;color:var(--muted);margin-top:2px">Reportée le ${formatDate(s.reportOriginal)}</div>`;
+    } else if (s.type === 'report-pending') {
+      icon = '🕐'; label = 'À rattraper'; col = 'var(--red)';
+      extra = `<button onclick="event.stopPropagation();closeSheet('detailOverlay');openRattrapage('${clientId}',${idx})"
+        style="margin-top:6px;background:var(--green);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif">
+        📅 Programmer le rattrapage
+      </button>`;
+    } else {
+      icon = '↩️'; label = 'Reportée'; col = 'var(--orange)';
+    }
+
+    const noteHtml = s.note
+      ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${s.note}</div>` : '';
+
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:15px;flex-shrink:0;padding-top:1px">${icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:${col}">${label} · <span style="color:var(--text);font-weight:500">${s.date ? formatDate(s.date) : '—'}</span></div>
+        ${noteHtml}${extra}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span style="font-size:10px;color:var(--muted)">#${num}</span>
+        <button onclick="openEditSession('${clientId}',${idx})" style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:4px 8px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif">✏️</button>
+        <button onclick="deleteSessionDirect('${clientId}',${idx})" style="background:rgba(255,69,96,0.1);border:1px solid rgba(255,69,96,0.25);border-radius:7px;padding:4px 8px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif">🗑️</button>
+      </div>
+    </div>`;
+  }).reverse().join('');
+  return `<div class="notes-box" style="margin-bottom:16px">
+    <h3>Historique complet</h3>${rows}</div>`;
+}
+
+// ═══════════════════════ DETAIL SHEET ═══════════════════════
+function openDetail(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  const done = getDoneCount(c);
+  const rem = getRemaining(c);
+  const status = getStatus(c);
+  const reports = getReportCount(c);
+  const endDate = getEndDateWithReports(c);
+  const color = avatarColor(c.nom);
+  const sessions = c.sessions || [];
+
+  // Dots
+  const dots = [];
+  for (let i=1; i<=c.total; i++) {
+    const s = sessions[i-1];
+    if (!s) {
+      const cls = i === done+1 ? 'dot dot-current' : 'dot dot-pending';
+      dots.push(`<div class="${cls}" title="Séance ${i}">${i}</div>`);
+    } else if (s.type === 'done' || s.type === 'rattrapage') {
+      const noteStr = s.note ? ` — ${s.note}` : '';
+      const lbl = s.type === 'rattrapage' ? '🔄' : '✓';
+      dots.push(`<div class="dot dot-done" title="${s.type==='rattrapage'?'Rattrapée':'Faite'} le ${formatDate(s.date)}${noteStr}">${lbl}</div>`);
+    } else {
+      const noteStr = s.note ? ` — ${s.note}` : '';
+      const isPending = s.type === 'report-pending';
+      const cls = isPending ? 'dot dot-report' : 'dot dot-report';
+      const lbl = isPending ? '🕐' : '↩';
+      const title = isPending ? `À rattraper (reportée le ${formatDate(s.date)}${noteStr})` : `Reportée le ${formatDate(s.date)}${noteStr}`;
+      dots.push(`<div class="${cls}" title="${title}">${lbl}</div>`);
+    }
+  }
+  // Ajouter les séances de report supplémentaires
+  for (let i=0; i<reports; i++) {
+    dots.push(`<div class="dot dot-report" title="Séance reportée à rattraper">+</div>`);
+  }
+
+  const statusColor = status==='alert'?'var(--red)':status==='warn'?'var(--orange)':status==='done'?'var(--muted)':'var(--green)';
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-avatar" style="background:${color}22;color:${color}">${initials(c.nom)}</div>
+    <div class="detail-name">${c.nom}</div>
+    <div class="detail-phone">${c.tel || 'Pas de téléphone'}</div>
+
+    <div class="info-grid">
+      <div class="info-tile">
+        <div class="val" style="color:${statusColor}">${rem > 0 ? rem : 0}</div>
+        <div class="lbl">Séances restantes</div>
+      </div>
+      <div class="info-tile">
+        <div class="val">${done}</div>
+        <div class="lbl">Séances faites</div>
+      </div>
+      <div class="info-tile">
+        <div class="val">${formatDateShort(c.debut)}</div>
+        <div class="lbl">Début contrat</div>
+      </div>
+      <div class="info-tile">
+        <div class="val" style="color:${status==='done'?'var(--muted)':'var(--accent)'}">${formatDateShort(endDate)}</div>
+        <div class="lbl">Fin ${reports>0?'(+'+reports+' rep.)':''}</div>
+      </div>
+      <div class="info-tile">
+        <div class="val">${c.total}</div>
+        <div class="lbl">Total contrat</div>
+      </div>
+      <div class="info-tile">
+        <div class="val" style="color:${getPendingCount(c)>0?'var(--red)':'var(--muted)'}">${getPendingCount(c)}</div>
+        <div class="lbl">À rattraper</div>
+      </div>
+    </div>
+
+    <div class="sessions-timeline">
+      <h3>Avancement des séances</h3>
+      <div class="session-dots">${dots.join('')}</div>
+      <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted)">
+          <span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:3px;margin-right:4px"></span>Faite
+        </span>
+        <span style="font-size:11px;color:var(--muted)">
+          <span style="display:inline-block;width:10px;height:10px;background:var(--orange);border-radius:3px;margin-right:4px"></span>Reportée
+        </span>
+        <span style="font-size:11px;color:var(--muted)">
+          <span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:3px;margin-right:4px"></span>Prochaine
+        </span>
+      </div>
+    </div>
+
+    ${c.notes ? `<div class="notes-box"><h3>Notes</h3><p>${c.notes.replace(/\n/g,'<br>')}</p></div>` : ''}
+    ${sessions.length > 0 ? buildHistorique(sessions, c.id) : ""}
+
+    ${status !== 'done' ? `
+    <div class="action-btns">
+      <button class="btn-green" onclick="closeSheet('detailOverlay');openDatePick('${c.id}','done')">✅ Enregistrer une séance</button>
+      <button class="btn-orange" onclick="closeSheet('detailOverlay');openDatePick('${c.id}','report')">↩️ Reporter une séance</button>
+    </div>
+    <div class="separator"></div>` : ''}
+
+    <button class="btn-edit" onclick="openEditSheet('${c.id}');closeSheet('detailOverlay')">✏️ Modifier la fiche</button>
+  `;
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+// ═══════════════════════ ADD / EDIT SHEET ═══════════════════════
+function openAddSheet() {
+  editingId = null;
+  document.getElementById('addTitle').textContent = 'Nouveau client';
+  document.getElementById('addBtn').textContent = 'Créer le contrat';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('f-nom').value = '';
+  document.getElementById('f-tel').value = '';
+  document.getElementById('f-debut').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-rythme').value = '2';
+  document.getElementById('f-total').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('calcPreview').style.display = 'none';
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+function openEditSheet(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('addTitle').textContent = 'Modifier ' + c.nom;
+  document.getElementById('addBtn').textContent = 'Enregistrer';
+  document.getElementById('deleteBtn').style.display = 'block';
+  document.getElementById('f-nom').value = c.nom;
+  document.getElementById('f-tel').value = c.tel || '';
+  document.getElementById('f-debut').value = c.debut;
+  document.getElementById('f-rythme').value = c.rythme;
+  document.getElementById('f-total').value = c.total;
+  document.getElementById('f-notes').value = c.notes || '';
+  updateCalc();
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+function updateCalc() {
+  const debut = document.getElementById('f-debut').value;
+  const rythme = document.getElementById('f-rythme').value;
+  const total = parseInt(document.getElementById('f-total').value);
+  if (!debut || !rythme || !total || total < 1) {
+    document.getElementById('calcPreview').style.display = 'none';
+    return;
+  }
+  const endDate = computeEndDate(debut, total, rythme);
+  const sem = nbSemaines(total, rythme);
+  document.getElementById('prev-semaines').textContent = sem;
+  document.getElementById('prev-fin').textContent = formatDateShort(endDate);
+  document.getElementById('prev-duree').textContent = dureeLabel(total, rythme);
+  document.getElementById('calcPreview').style.display = 'flex';
+}
+
+function saveClient() {
+  const nom = document.getElementById('f-nom').value.trim();
+  const tel = document.getElementById('f-tel').value.trim();
+  const debut = document.getElementById('f-debut').value;
+  const rythme = document.getElementById('f-rythme').value;
+  const total = parseInt(document.getElementById('f-total').value);
+  const notes = document.getElementById('f-notes').value.trim();
+
+  if (!nom) { showToast('⚠️ Merci d\'entrer un nom'); return; }
+  if (!debut) { showToast('⚠️ Merci d\'entrer une date de début'); return; }
+  if (!total || total < 1) { showToast('⚠️ Merci d\'entrer le nombre de séances'); return; }
+
+  if (editingId) {
+    const c = clients.find(x=>x.id===editingId);
+    c.nom = nom; c.tel = tel; c.debut = debut;
+    c.rythme = rythme; c.total = total; c.notes = notes;
+    showToast('✅ Fiche modifiée');
+  } else {
+    clients.push({ id: uid(), nom, tel, debut, rythme, total, notes, sessions:[] });
+    showToast('🎉 Client ajouté : ' + nom);
+  }
+  save(); render();
+  closeSheet('addOverlay');
+}
+
+function deleteClient() {
+  if (!editingId) return;
+  const c = clients.find(x=>x.id===editingId);
+  if (!confirm('Supprimer ' + c.nom + ' ? Cette action est irréversible.')) return;
+  clients = clients.filter(x=>x.id!==editingId);
+  save(); render();
+  closeSheet('addOverlay');
+  showToast('🗑️ Client supprimé');
+}
+
+// ═══════════════════════ FILTER ═══════════════════════
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// ═══════════════════════ UTILS ═══════════════════════
+function closeSheet(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function closeOnBg(e, id) {
+  if (e.target === document.getElementById(id)) closeSheet(id);
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════ INIT ═══════════════════════
+load(); render();
+</script>
+</body>
+</html>
